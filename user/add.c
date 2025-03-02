@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
   struct atoi_s n1 = my_atoi(buf);
   int num2 = my_atoi(n1.next).num;
 
-  printf("Result: %d\n", n1.num + num2);
+  printf("Result: %d\n", add(n1.num, num2));
 
   exit(0);
 }
