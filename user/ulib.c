@@ -75,7 +75,10 @@ gets(char *buf, int max)
       break;
     buf[i++] = c;
     if(c == '\n' || c == '\r')
+    {
+      --i;
       break;
+    }
   }
   buf[i] = '\0';
   return buf;

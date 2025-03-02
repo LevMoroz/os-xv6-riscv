@@ -33,7 +33,12 @@ struct atoi_s my_atoi(char* input) //Нормальный atoi + exit
   }
 
   int num = 0;
-  int is_not_empty = 0;
+  
+  if(*input < '0' || *input > '9')
+  {
+    fprintf(2, "There is no number!\n");
+    exit(1);
+  }
 
   while(*input != ' ' && *input != '\0')
   {
@@ -43,15 +48,8 @@ struct atoi_s my_atoi(char* input) //Нормальный atoi + exit
       exit(1);
     }
 
-    is_not_empty = 1;
     num = num * 10 + (*input - '0');
     ++input;
-  }
-  
-  if(is_not_empty == 0)
-  {
-    fprintf(2, "There is no number!\n");
-    exit(1);
   }
 
   struct atoi_s a;
@@ -68,7 +66,7 @@ int main(int argc, char *argv[])
   int i = 0;
   while(i < buf_len && read(0, &buf[i], sizeof(char)) > 0)
   {
-    if(buf[i] == '\n')
+    if(buf[i] == '\n' || buf[i] == '\r')
     {
       buf[i] = '\0';
       break;
@@ -88,4 +86,6 @@ int main(int argc, char *argv[])
   int num2 = my_atoi(n1.next).num;
 
   printf("Result: %d\n", n1.num + num2);
+
+  exit(0);
 }
