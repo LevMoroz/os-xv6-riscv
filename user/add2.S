@@ -80,8 +80,9 @@ return:
 
 
 error:
-    la a0, msg_err
-    call printf
+    li a0, 2
+    la a1, msg_err
+    call fprintf
 
     li a7, 2
     li a0, 1
