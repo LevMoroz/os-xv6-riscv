@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
   {
     close(pipefd[0]);
 
-    printf("Parent pid = %d, child pid = %d, sending...\n", getpid(),pid);
+    printf("Parent pid = %d, child pid = %d, sending...\n", getpid(), pid);
 
     for (int i = 1; i < argc; ++i)
     {
