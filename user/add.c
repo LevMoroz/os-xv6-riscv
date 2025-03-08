@@ -10,39 +10,39 @@ struct atoi_s
   char* next;
 };
 
-struct atoi_s my_atoi(char* input) //Нормальный atoi + exit
+struct atoi_s my_atoi(char* input) // Нормальный atoi + exit
 {
   int sgn = 1;
 
-  if(*input == '\0')
+  if (*input == '\0')
   {
     fprintf(2, "Not enough numbers to convert!\n");
     exit(1);
   }
 
-  while(*input == ' ')
+  while (*input == ' ')
     ++input;
 
-  if(*input == '+')
+  if (*input == '+')
     ++input;
 
-  if(*input == '-')
+  if (*input == '-')
   {
     sgn = -1;
     ++input;
   }
 
   int num = 0;
-  
-  if(*input < '0' || *input > '9')
+
+  if (*input < '0' || *input > '9')
   {
     fprintf(2, "There is no number!\n");
     exit(1);
   }
 
-  while(*input != ' ' && *input != '\0')
+  while (*input != ' ' && *input != '\0')
   {
-    if(*input < '0' || *input > '9')
+    if (*input < '0' || *input > '9')
     {
       fprintf(2, "This is not a number!\n");
       exit(1);
@@ -64,20 +64,28 @@ int main(int argc, char *argv[])
   printf("Write two numbers with whitespace to add:\n");
 
   int i = 0;
-  while(i < buf_len && read(0, &buf[i], sizeof(char)) > 0)
+  for (;;)
   {
-    if(buf[i] == '\n' || buf[i] == '\r')
+    int res = read(0, &buf[i], sizeof(char));
+
+    if (res == -1)
+    {
+      fprintf(2, "Some read error\n");
+      exit(1);
+    }
+
+    if (res == 0 || buf[i] == '\n' || buf[i] == '\r' || buf[i] == '\0')
     {
       buf[i] = '\0';
       break;
     }
-    ++i;
-  }
 
-  if(buf[i] != '\0')
-  {
-    fprintf(2, "Buffer is overflowed (too big numbers) or another read error\n");
-    exit(1);
+    ++i;
+    if (i == buf_len)
+    {
+      fprintf(2, "Buffer is overflowed (too big numbers?)\n");
+      exit(1);
+    }
   }
 
   printf("|%s|\n", buf);
