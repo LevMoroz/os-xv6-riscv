@@ -5,32 +5,45 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-const int write_size = 64 * 1024;
-const int buf_len = 1024;
+const size_t write_size = 64 * 1024;
+const size_t buf_len = 1024;
+
+void check(int res, const char *msg)
+{
+    if (res < 0)
+    {
+        perror(msg);
+        exit(1);
+    }
+}
+
+void my_write(int fd, const char *buf, size_t l)
+{
+    size_t w = 0;
+
+    while (l > 0)
+    {
+        size_t s = l > write_size ? write_size : l;
+
+        ssize_t written = write(fd, buf + w, s);
+        check(written, "write to fd error! ");
+
+        w += written;
+        l -= written;
+    }
+}
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2)
-    {
-        fprintf(stderr, "Program needs arguments!\n");
-        exit(1);
-    }
+    check(argc - 2, "No arguments error! ");
 
     int pipefd[2];
-    if (pipe(pipefd) == -1)
-    {
-        fprintf(stderr, "Pipe creating error!\n");
-        exit(1);
-    }
+    check(pipe(pipefd), "pipe creating error! ");
 
     pid_t pid = fork();
-    if (pid < 0)
-    {
-        fprintf(stderr, "Fork error!\n");
-        exit(1);
-    }
+    check(pid, "fork error! ");
 
-    else if (pid > 0)
+    if (pid > 0)
     {
         close(pipefd[0]);
 
@@ -38,67 +51,33 @@ int main(int argc, char *argv[])
 
         for (int i = 1; i < argc; ++i)
         {
-            int l = strlen(argv[i]);
-            int w = 0;
+            my_write(pipefd[1], argv[i], strlen(argv[i]));
 
-            while (l > 0)
-            {
-                int s = l > write_size ? write_size : l;
-
-                int written = write(pipefd[1], argv[i] + w, s);
-                if (written == -1)
-                {
-                    fprintf(stderr, "Write pipe error!\n");
-                    exit(1);
-                }
-
-                w += written;
-                l -= written;
-            }
-
-            if (write(pipefd[1], "\n", 1) != 1)
-            {
-                fprintf(stderr, "Write pipe error!\n");
-                exit(1);
-            }
+            my_write(pipefd[1], "\n", 1);
         }
 
-        int ret = close(pipefd[1]);
+        check(close(pipefd[1]), "close write pipe error! ");
 
-        if (ret < 0)
-        {
-            fprintf(stderr, "Close write pipe error!\n");
-            exit(1);
-        }
-        else
-            wait((int *)0);
-        
+        wait((int *)0);
+
         exit(0);
     }
 
-    else if (pid == 0)
+    else // if (pid == 0)
     {
-        close(pipefd[1]);
+        check(close(pipefd[1]), "close write pipe error! ");
 
         char buf[buf_len];
-        int r;
-        
+        ssize_t r;
+
         while ((r = read(pipefd[0], buf, sizeof(buf))) > 0)
         {
-            if (write(1, buf, r) != r) //C fprintf иногда бажит)
-            {
-                fprintf(stderr, "Write to stdout error!\n");
-                exit(1);
-            }
+            my_write(1, buf, r);
         }
 
-        if (r == -1)
-        {
-            fprintf(stderr, "Read pipe error!\n");
-            exit(1);
-        }
+        check(r, "read pipe error! ");
 
-        close(pipefd[0]);
+        check(close(pipefd[0]), "close read pipe error! ");
         exit(0);
     }
 }

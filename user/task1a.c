@@ -14,16 +14,10 @@ int main(int argc, char *argv[])
   else if (pid > 0)
   {
     printf("Parent pid = %d, child pid = %d, waiting...\n", getpid(), pid);
-    int status, cpid;
-    cpid = wait(&status);
+    int status;
+    wait(&status);
 
-    if (cpid == -1)
-    {
-      fprintf(2, "fork error before, no child!\n");
-      exit(1);
-    }
-
-    printf("Parent pid = %d, child pid = %d exit with status %d\n", getpid(), cpid, status);
+    printf("Parent pid = %d, child pid = %d exit with status %d\n", getpid(), pid, status);
 
     exit(0);
   }

@@ -15,18 +15,16 @@ int main(int argc, char *argv[])
   {
     printf("Parent pid = %d, child pid = %d, killing...\n", getpid(), pid);
 
-    int st;
-    st = kill(pid);
-    int status, cpid;
-    cpid = wait(&status);
-
-    if (cpid == -1 || st == -1)
+    if (kill(pid) == -1)
     {
-      fprintf(2, "fork error before, no child!\n");
+      fprintf(2, "kill error!\n");
       exit(1);
     }
 
-    printf("Parent pid = %d, child pid = %d exit with status %d\n", getpid(), cpid, status);
+    int status;
+    wait(&status);
+
+    printf("Parent pid = %d, child pid = %d exit with status %d\n", getpid(), pid, status);
 
     exit(0);
   }

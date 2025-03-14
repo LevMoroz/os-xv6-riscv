@@ -4,31 +4,26 @@
 
 const int write_size = 64;
 
-int main(int argc, char* argv[])
+void check(int res, const char *msg)
 {
-  if (argc < 2)
+  if (res < 0)
   {
-    fprintf(2, "Program needs arguments!\n");
+    fprintf(2, "%s error!\n", msg);
     exit(1);
   }
+}
 
+int main(int argc, char *argv[])
+{
+  check(argc - 2, "No arguments");
 
   int pipefd[2];
-  if (pipe(pipefd) < 0)
-  {
-    fprintf(2, "pipe creating error!\n");
-    exit(1);
-  }
-
+  check(pipe(pipefd), "pipe creating");
 
   int pid = fork();
-  if (pid < 0)
-  {
-    fprintf(2, "fork error!\n");
-    exit(1);
-  }
+  check(pid, "fork");
 
-  else if (pid > 0)
+  if (pid > 0)
   {
     close(pipefd[0]);
 
@@ -44,49 +39,36 @@ int main(int argc, char* argv[])
         int s = l > write_size ? write_size : l;
 
         int written = write(pipefd[1], argv[i] + w, s);
-        if (written == -1)
-        {
-          fprintf(2, "write pipe error!\n");
-          exit(1);
-        }
+        check(written, "write pipe");
 
         w += written;
         l -= written;
       }
 
-      if (write(pipefd[1], "\n", 1) != 1)
-      {
-        fprintf(2, "write pipe error!\n");
-        exit(1);
-      }
+      int res;
+      while ((res = write(pipefd[1], "\n", 1)) == 0)
+        ;
+      check(res, "write pipe");
     }
 
-    int ret = close(pipefd[1]);
+    check(close(pipefd[1]), "close write pipe");
 
-    if(ret < 0)
-    {
-      fprintf(2, "close write pipe error!\n");
-      exit(1);
-    }
-    else
-      wait((int*) 0);
+    wait((int *)0);
 
     exit(0);
   }
 
-  else if (pid == 0)
+  else // if (pid == 0)
   {
-    close(pipefd[1]);
+    check(close(pipefd[1]), "close write pipe");
 
-    close(0);
-    if (dup(pipefd[0]) == -1)
-    {
-      fprintf(2, "dup error!\n");
-      exit(1);
-    }
-    close(pipefd[0]);
+    check(close(0), "close stdin");
 
-    char* arg[] = {"/wc", 0};
+    check(dup(pipefd[0]), "dup");
+
+    check(close(pipefd[0]), "close read pipe");
+
+    char *arg[] = {"/wc", 0};
     exec("/wc", arg);
 
     fprintf(2, "Error: exec of wc failed!\n");
